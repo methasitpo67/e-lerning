@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การออกแบบและพัฒนา e-Learning (ELD-101)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#06b6d4',
+                            dark: '#0891b2',
+                            light: '#22d3ee',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row transition-colors duration-300">
+
+    <!-- Custom Notification Modal -->
+    <div id="modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-700 text-center transform transition-all">
+            <div id="modal-icon" class="text-4xl text-cyan-500 mb-3"><i class="fa-solid fa-circle-info"></i></div>
+            <h3 id="modal-title" class="text-xl font-bold text-slate-900 dark:text-white mb-2">แจ้งเตือน</h3>
+            <p id="modal-desc" class="text-slate-600 dark:text-slate-300 text-sm mb-6">รายละเอียดข้อความแจ้งเตือน...</p>
+            <button onclick="closeModal()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-xl shadow-lg transition">ตกลง</button>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-full md:w-80 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 transition-all duration-300">
+        <div>
+            <!-- Header Logo / Title -->
+            <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+                <div>
+                    <h1 class="font-bold text-lg text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap"></i> ELD-101
+                    </h1>
+                    <p class="text-xs text-slate-400 mt-0.5">การออกแบบและพัฒนา e-Learning</p>
+                </div>
+                <button onclick="toggleSidebarMobile()" class="md:hidden text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- User Info Badge -->
+            <div class="px-5 py-3 bg-slate-900/60 border-b border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">ผู้ใช้งาน: <b id="display-username" class="text-cyan-300">ยังไม่ระบุชื่อ</b></span>
+                <button onclick="openProfileModal()" class="text-cyan-400 hover:underline"><i class="fa-solid fa-user-pen"></i> แก้ไข</button>
+            </div>
+
+            <!-- Menu Items -->
+            <nav id="nav-menu" class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-230px)]">
+                <!-- Dynamically populated -->
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer Action Buttons -->
+        <div class="p-4 border-t border-slate-800 space-y-2 bg-slate-950">
+            <button onclick="toggleTheme()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium flex items-center justify-center gap-2 border border-slate-800 transition">
+                <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i> <span id="theme-text">สลับธีม สว่าง/มืด</span>
+            </button>
+            <button onclick="resetProgress()" class="w-full py-2 px-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-rose-500/20 transition">
+                <i class="fa-solid fa-rotate-right"></i> เริ่มใหม่ทั้งหมด
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+        <!-- Top bar for mobile menu toggle -->
+        <header class="md:hidden bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-20">
+            <button onclick="toggleSidebarMobile()" class="text-slate-300 hover:text-white p-1">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <span class="font-bold text-cyan-400 text-sm">ELD-101 e-Learning</span>
+            <div class="w-6"></div>
+        </header>
+
+        <!-- Dynamic Content Container -->
+        <div id="main-content" class="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
+            <!-- Rendered via JS -->
+        </div>
+    </main>
+
+    <!-- Profile Edit Modal -->
+    <div id="profile-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-700">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">ข้อมูลผู้เรียน</h3>
+            <p class="text-slate-600 dark:text-slate-300 text-sm mb-4">กรุณาใส่ "ชื่อเล่น" หรือ "นามแฝง" เพื่อบันทึกความก้าวหน้าและคะแนนในเครื่องของคุณ</p>
+            <input type="text" id="username-input" placeholder="กรอกชื่อเล่นเพื่อเริ่มเรียน" class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 mb-5">
+            <div class="flex gap-3">
+                <button onclick="saveUsername()" class="flex-1 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-xl shadow-lg transition">บันทึกและเริ่มเรียน</button>
+                <button onclick="closeProfileModal()" class="px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- Data & State ---
+        const appState = {
+            username: localStorage.getItem('eld_username') || '',
+            currentView: localStorage.getItem('eld_current_view') || 'home',
+            completedLessons: JSON.parse(localStorage.getItem('eld_completed') || '[]'),
+            quizScores: JSON.parse(localStorage.getItem('eld_scores') || '{}')
+        };
+
+        const menuItems = [
+            { id: 'home', title: 'หน้าแรก', icon: 'fa-house' },
+            { id: 'pretest', title: 'ทดสอบก่อนเรียน', icon: 'fa-clipboard-question' },
+            { id: 'lesson1', title: 'บทที่ 1: ภาพรวม ADDIE', icon: 'fa-book' },
+            { id: 'act1', title: 'กิจกรรม: ลำดับ ADDIE', icon: 'fa-puzzle-piece' },
+            { id: 'review1', title: 'ทบทวนความเข้าใจ บทที่ 1', icon: 'fa-circle-check' },
+            { id: 'lesson2', title: 'บทที่ 2: การออกแบบการสอน', icon: 'fa-book' },
+            { id: 'act2', title: 'กิจกรรม: จับคู่ Gagné', icon: 'fa-puzzle-piece' },
+            { id: 'review2', title: 'ทบทวนความเข้าใจ บทที่ 2', icon: 'fa-circle-check' },
+            { id: 'lesson3', title: 'บทที่ 3: สื่อและการเข้าถึง', icon: 'fa-book' },
+            { id: 'act3', title: 'กิจกรรม: วินิจฉัยปัญหาสื่อ', icon: 'fa-puzzle-piece' },
+            { id: 'review3', title: 'ทบทวนความเข้าใจ บทที่ 3', icon: 'fa-circle-check' },
+            { id: 'lesson4', title: 'บทที่ 4: การวัดผลและข้อมูล', icon: 'fa-book' },
+            { id: 'act4', title: 'กิจกรรม: หลักฐานกับ Kirkpatrick', icon: 'fa-puzzle-piece' },
+            { id: 'review4', title: 'ทบทวนความเข้าใจ บทที่ 4', icon: 'fa-circle-check' },
+            { id: 'posttest', title: 'ทดสอบหลังเรียน', icon: 'fa-graduation-cap' },
+            { id: 'summary', title: 'สรุปผล', icon: 'fa-chart-pie' }
+        ];
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUsernameDisplay();
+            renderNav();
+            renderView(appState.currentView);
+        });
+
+        function updateUsernameDisplay() {
+            const el = document.getElementById('display-username');
+            el.textContent = appState.username ? appState.username : 'ยังไม่ระบุชื่อ';
+        }
+
+        // Check if a specific view is unlocked for navigation
+        function isViewUnlocked(viewId) {
+            const targetIdx = menuItems.findIndex(m => m.id === viewId);
+            if (targetIdx <= 0) return true; // Home is always unlocked
+
+            // Check if all preceding items have been completed
+            for (let i = 0; i < targetIdx; i++) {
+                const prevId = menuItems[i].id;
+                if (!appState.completedLessons.includes(prevId)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function renderNav() {
+            const navContainer = document.getElementById('nav-menu');
+            navContainer.innerHTML = '';
+            menuItems.forEach((item, idx) => {
+                const isActive = appState.currentView === item.id;
+                const isCompleted = appState.completedLessons.includes(item.id);
+                const unlocked = isViewUnlocked(item.id);
+                
+                const btn = document.createElement('button');
+                if (unlocked) {
+                    btn.onclick = () => navigateTo(item.id);
+                } else {
+                    btn.onclick = () => showModal('ล็อคอยู่', `กรุณาศึกษาเนื้อหาและทำกิจกรรมตามลำดับให้เรียบร้อยก่อนจึงจะสามารถเข้าถึง <b>"${item.title}"</b> ได้`, 'fa-lock', 'text-amber-400');
+                }
+
+                btn.className = `w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium flex items-center justify-between transition ${
+                    isActive 
+                        ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30' 
+                        : unlocked 
+                            ? 'text-slate-300 hover:bg-slate-900 hover:text-white' 
+                            : 'text-slate-600 cursor-not-allowed bg-slate-950/40'
+                }`;
+                
+                let rightIcon = '';
+                if (isCompleted) {
+                    rightIcon = '<i class="fa-solid fa-check text-emerald-400 text-xs"></i>';
+                } else if (!unlocked) {
+                    rightIcon = '<i class="fa-solid fa-lock text-slate-600 text-xs"></i>';
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 truncate">
+                        <i class="fa-solid ${item.icon} w-5 text-center ${isActive ? 'text-cyan-400' : unlocked ? 'text-slate-400' : 'text-slate-600'}"></i>
+                        <span class="truncate">${item.title}</span>
+                    </div>
+                    ${rightIcon}
+                `;
+                navContainer.appendChild(btn);
+            });
+        }
+
+        function navigateTo(viewId) {
+            // Guard clause if user tries to jump ahead locked views
+            if (!isViewUnlocked(viewId)) {
+                const item = menuItems.find(m => m.id === viewId);
+                showModal('ล็อคอยู่', `กรุณาศึกษาบทเรียนและทำกิจกรรมตามลำดับก่อน จึงจะสามารถเปิดดู <b>"${item ? item.title : viewId}"</b> ได้`, 'fa-lock', 'text-amber-400');
+                return;
+            }
+
+            appState.currentView = viewId;
+            localStorage.setItem('eld_current_view', viewId);
+            renderNav();
+            renderView(viewId);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Close mobile sidebar if open
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        function toggleSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function markCompleted(id) {
+            if (!appState.completedLessons.includes(id)) {
+                appState.completedLessons.push(id);
+                localStorage.setItem('eld_completed', JSON.stringify(appState.completedLessons));
+                renderNav();
+            }
+        }
+
+        // --- Views Rendering ---
+        function renderView(viewId) {
+            const container = document.getElementById('main-content');
+            
+            switch(viewId) {
+                case 'home':
+                    container.innerHTML = `
+                        <div class="space-y-8 animate-fadeIn">
+                            <div class="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700/60 rounded-3xl p-8 md:p-12 shadow-xl">
+                                <span class="inline-block px-3.5 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
+                                    ELD-101 • หลักสูตร e-Learning
+                                </span>
+                                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                                    การออกแบบและพัฒนา e-Learning
+                                </h1>
+                                <p class="text-slate-300 text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
+                                    ยินดีต้อนรับสู่บทเรียน e-Learning สำหรับนักศึกษาครูคอมพิวเตอร์ บทเรียนนี้ใช้เวลาประมาณ 90 นาที
+                                </p>
+                                <div class="flex flex-wrap gap-4">
+                                    <button onclick="checkAndStart()" class="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center gap-3 text-lg">
+                                        <span>เริ่มทำแบบทดสอบก่อนเรียน</span> <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                    <button onclick="navigateTo('lesson1')" class="px-6 py-4 bg-slate-700/50 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-600 transition">
+                                        เข้าสู่บทเรียน บทที่ 1
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 shadow-md">
+                                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <i class="fa-solid fa-bullseye text-cyan-400"></i> วัตถุประสงค์การเรียนรู้
+                                    </h3>
+                                    <ul class="space-y-3 text-slate-300 text-sm md:text-base">
+                                        <li class="flex items-start gap-3"><i class="fa-solid fa-check text-cyan-400 mt-1"></i> อธิบายขั้นตอนของ ADDIE และผลงานที่ได้ในแต่ละขั้น</li>
+                                        <li class="flex items-start gap-3"><i class="fa-solid fa-check text-cyan-400 mt-1"></i> เขียนวัตถุประสงค์ที่วัดได้และจัดลำดับบทเรียนตามแนวคิดของ Gagné</li>
+                                        <li class="flex items-start gap-3"><i class="fa-solid fa-check text-cyan-400 mt-1"></i> วินิจฉัยปัญหาสื่อด้วยหลักของ Mayer และเกณฑ์การเข้าถึง (Accessibility)</li>
+                                        <li class="flex items-start gap-3"><i class="fa-solid fa-check text-cyan-400 mt-1"></i> เลือกหลักฐานเพื่อประเมินการเรียนรู้ได้อย่างเหมาะสม</li>
+                                    </ul>
+                                </div>
+
+                                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 shadow-md flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <i class="fa-solid fa-shield-halved text-amber-400 text-2xl"></i>
+                                            <h3 class="text-xl font-bold text-amber-300">ข้อมูลส่วนบุคคล (Privacy Notice)</h3>
+                                        </div>
+                                        <p class="text-amber-200/90 text-sm md:text-base leading-relaxed">
+                                            กรุณาใช้ <b>"ชื่อเล่น"</b> หรือ <b>"นามแฝง"</b> เท่านั้น ระบบจะบันทึกความก้าวหน้าและคะแนนไว้ในเครื่องของคุณ (Local Storage) โดยไม่มีการส่งข้อมูลออกไปยังเซิร์ฟเวอร์ภายนอกใดๆ ทั้งสิ้น
+                                        </p>
+                                    </div>
+                                    <div class="mt-6 pt-4 border-t border-amber-500/20 flex items-center justify-between">
+                                        <span class="text-xs text-amber-300/80">สถานะชื่อผู้เรียน: <b id="home-username-status">${appState.username || 'ยังไม่ระบุ'}</b></span>
+                                        <button onclick="openProfileModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs transition">
+                                            ${appState.username ? 'เปลี่ยนชื่อ' : 'ระบุชื่อผู้เรียน'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'pretest':
+                case 'posttest':
+                    renderQuizView(viewId, container);
+                    break;
+
+                case 'lesson1':
+                case 'lesson2':
+                case 'lesson3':
+                case 'lesson4':
+                    renderLessonView(viewId, container);
+                    break;
+
+                case 'act1':
+                case 'act2':
+                case 'act3':
+                case 'act4':
+                    renderActivityView(viewId, container);
+                    break;
+
+                case 'review1':
+                case 'review2':
+                case 'review3':
+                case 'review4':
+                    renderReviewView(viewId, container);
+                    break;
+
+                case 'summary':
+                    renderSummaryView(container);
+                    break;
+
+                default:
+                    container.innerHTML = `<h2 class="text-2xl font-bold">ไม่พบหน้าเนื้อหา</h2>`;
+            }
+        }
+
+        // --- Lesson Content View ---
+        function renderLessonView(lessonId, container) {
+            markCompleted(lessonId);
+            const contentMap = {
+                lesson1: {
+                    title: "บทที่ 1: ภาพรวม ADDIE Model",
+                    subtitle: "กรอบแนวคิดการออกแบบระบบการสอนมาตรฐานสากลสำหรับการพัฒนา e-Learning",
+                    content: `
+                        <p class="mb-4">โมเดล ADDIE เป็นกระบวนการออกแบบการสอน (Instructional Design) ที่นิยมใช้กันอย่างแพร่หลาย ประกอบด้วย 5 ขั้นตอนหลัก:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 my-6">
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center"><b class="text-cyan-400 text-lg">A</b><br><span class="text-sm font-semibold">Analysis</span><br><span class="text-xs text-slate-400">วิเคราะห์ผู้เรียนและปัญหา</span></div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center"><b class="text-cyan-400 text-lg">D</b><br><span class="text-sm font-semibold">Design</span><br><span class="text-xs text-slate-400">ออกแบบโครงสร้างเนื้อหา</span></div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center"><b class="text-cyan-400 text-lg">D</b><br><span class="text-sm font-semibold">Development</span><br><span class="text-xs text-slate-400">พัฒนาสื่อและบทเรียน</span></div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center"><b class="text-cyan-400 text-lg">I</b><br><span class="text-sm font-semibold">Implementation</span><br><span class="text-xs text-slate-400">นำไปใช้จริงกับผู้เรียน</span></div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center"><b class="text-cyan-400 text-lg">E</b><br><span class="text-sm font-semibold">Evaluation</span><br><span class="text-xs text-slate-400">ประเมินและปรับปรุง</span></div>
+                        </div>
+                        <p>การเข้าใจแต่ละขั้นตอนนี้จะช่วยให้ครูผู้สอนสามารถสร้างบทเรียนคอมพิวเตอร์ช่วยสอน (CAI) และระบบ e-Learning ที่มีประสิทธิภาพสูงสุด ตอบโจทย์ผู้เรียนในยุคดิจิทัล</p>
+                    `,
+                    next: 'act1',
+                    nextTitle: 'ทำกิจกรรม: ลำดับ ADDIE'
+                },
+                lesson2: {
+                    title: "บทที่ 2: การออกแบบการสอนตามแนวคิดของ Gagné",
+                    subtitle: "9 เหตุการณ์การสอน (9 Events of Instruction) เพื่อกระตุ้นการเรียนรู้",
+                    content: `
+                        <p class="mb-4">Robert Gagné ได้เสนอหลักการออกแบบการสอน 9 ขั้นตอนที่ช่วยให้สมองของผู้เรียนรับข้อมูล จัดเก็บ และดึงมาใช้ได้อย่างมีประสิทธิภาพ:</p>
+                        <ul class="space-y-2 list-disc list-inside text-slate-300">
+                            <li><b>1. เร้าความสนใจ (Gaining attention)</b> - ดึงดูดผู้เรียนด้วยคำถามหรือภาพที่น่าสนใจ</li>
+                            <li><b>2. แจ้งวัตถุประสงค์ (Informing learners of objectives)</b> - บอกสิ่งที่ผู้เรียนจะได้เรียนรู้</li>
+                            <li><b>3. กระตุ้นความรู้เดิม (Stimulating recall of prior learning)</b> - เชื่อมโยงบทเรียนใหม่กับความรู้เก่า</li>
+                            <li><b>4. เสนอสิ่งเร้าใหม่ (Presenting the stimulus)</b> - นำเสนอเนื้อหาบทเรียน</li>
+                            <li><b>5. ให้แนว 3. การชี้แนะแนวทาง (Providing learning guidance)</b> - ตัวอย่างและคำอธิบายประกอบ</li>
+                            <li><b>6. การแสดง 4. การแสดงออกพฤติกรรม (Eliciting performance)</b> - ให้ผู้เรียนได้ทดลองทำกิจกรรม</li>
+                            <li><b>7. ให้ข้อมูลย้อนกลับ (Providing feedback)</b> - เฉลยและอธิบายเพิ่มเติมทันที</li>
+                            <li><b>8. ประเมินผลการเรียน (Assessing performance)</b> - วัดความเข้าใจหลังเรียน</li>
+                            <li><b>9. การจำและนำไป 9. การจำและการนำไปใช้ (Enhancing retention and transfer)</b> - สรุปและเปิดโอกาสให้นำไปประยุกต์</li>
+                        </ul>
+                    `,
+                    next: 'act2',
+                    nextTitle: 'ทำกิจกรรม: จับคู่ Gagné'
+                },
+                lesson3: {
+                    title: "บทที่ 3: สื่อและการเข้าถึง (Mayer's Principles & Accessibility)",
+                    subtitle: "หลักการออกแบบมัลติมีเดียและมาตรฐานการเข้าถึงเว็บสำหรับทุกคน",
+                    content: `
+                        <p class="mb-4">ริชาร์ด เมเยอร์ (Richard Mayer) ได้เสนอหลักการออกแบบมัลติมีเดีย 12 ประการ เช่น:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <h4 class="font-bold text-cyan-400 mb-1">Coherence Principle (หลักความสอดคล้อง)</h4>
+                                <p class="text-sm text-slate-300">ตัดข้อความ ภาพ หรือเสียงที่ไม่จำเป็นออก เพื่อไม่ให้ผู้เรียนไขว้เขว</p>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <h4 class="font-bold text-cyan-400 mb-1">Multimedia Principle (หลักมัลติมีเดีย)</h4>
+                                <p class="text-sm text-slate-300">ใช้ภาพกราฟิกควบคู่กับคำอธิบายข้อความ ดีกว่าการใช้ข้อความอย่างเดียว</p>
+                            </div>
+                        </div>
+                        <p class="mt-4">นอกจากนี้ เกณฑ์การเข้าถึง (Web Accessibility / WCAG) ยังมีความสำคัญอย่างยิ่ง เพื่อให้ผู้พิการหรือผู้มีความต้องการพิเศษสามารถเข้าถึงบทเรียน e-Learning ได้ทัดเทียมกัน</p>
+                    `,
+                    next: 'act3',
+                    nextTitle: 'ทำกิจกรรม: วินิจฉัยปัญหาสื่อ'
+                },
+                lesson4: {
+                    title: "บทที่ 4: การวัดผลและข้อมูล (Kirkpatrick Model)",
+                    subtitle: "การประเมินประสิทธิผลของการฝึกอบรมและหลักสูตร e-Learning 4 ระดับ",
+                    content: `
+                        <p class="mb-4">โมเดลของ Donald Kirkpatrick เป็นมาตรฐานสากลในการวัดผลสัมฤทธิ์และความคุ้มค่าของการฝึกอบรม แบ่งเป็น 4 ระดับ ได้แก่:</p>
+                        <div class="space-y-3 my-4">
+                            <div class="p-3 bg-slate-800 rounded-xl border border-slate-700"><b>Level 1: Reaction (ปฏิกิริยาตอบสนอง)</b> - ความพึงพอใจและความคิดเห็นของผู้เรียนต่อหลักสูตร</div>
+                            <div class="p-3 bg-slate-800 rounded-xl border border-slate-700"><b>Level 2: Learning (การเรียนรู้)</b> - ความรู้ ทักษะ หรือทัศนคติที่เพิ่มขึ้นวัดโดยการทดสอบก่อน-หลังเรียน</div>
+                            <div class="p-3 bg-slate-800 rounded-xl border border-slate-700"><b>Level 3: Behavior (พฤติกรรม)</b> - การนำความรู้ไปปฏิบัติจริงในการทำงานหรือชีวิตประจำวัน</div>
+                            <div class="p-3 bg-slate-800 rounded-xl border border-slate-700"><b>Level 4: Results (ผลลัพธ์)</b> - ผลลัพธ์สุดท้ายทางธุรกิจหรือองค์กรที่เกิดขึ้นจากการฝึกอบรม</div>
+                        </div>
+                    `,
+                    next: 'act4',
+                    nextTitle: 'ทำกิจกรรม: หลักฐานกับ Kirkpatrick'
+                }
+            };
+
+            const data = contentMap[lessonId];
+            container.innerHTML = `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 md:p-10 shadow-xl space-y-6 animate-fadeIn">
+                    <div>
+                        <span class="text-cyan-400 font-semibold text-sm uppercase tracking-wide">เนื้อหาบทเรียน e-Learning</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mt-1 mb-2">${data.title}</h2>
+                        <p class="text-slate-400 text-sm md:text-base">${data.subtitle}</p>
+                    </div>
+                    <div class="h-px bg-slate-700"></div>
+                    <div class="text-slate-200 text-base leading-relaxed space-y-4">
+                        ${data.content}
+                    </div>
+                    <div class="pt-6 border-t border-slate-700 flex justify-between items-center">
+                        <button onclick="navigateTo('home')" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm font-medium transition">
+                            <i class="fa-solid fa-house mr-2"></i> หน้าแรก
+                        </button>
+                        <button onclick="navigateTo('${data.next}')" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+                            <span>${data.nextTitle}</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Quiz / Pretest / Posttest View ---
+        function renderQuizView(type, container) {
+            const isPre = type === 'pretest';
+            const title = isPre ? 'แบบทดสอบก่อนเรียน (Pre-Test)' : 'แบบทดสอบหลังเรียน (Post-Test)';
+            const desc = isPre ? 'วัดระดับความรู้พื้นฐานก่อนเข้าสู่บทเรียน ELD-101' : 'ประเมินความรู้และความเข้าใจหลังจากศึกษาบทเรียนครบทุกบทแล้ว';
+            
+            container.innerHTML = `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 md:p-10 shadow-xl space-y-8 animate-fadeIn">
+                    <div>
+                        <span class="text-cyan-400 font-semibold text-sm uppercase tracking-wide">การประเมินผล</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mt-1 mb-2">${title}</h2>
+                        <p class="text-slate-400 text-sm md:text-base">${desc}</p>
+                    </div>
+
+                    <div id="quiz-form" class="space-y-8">
+                        <!-- Q1 -->
+                        <div id="q1-block" class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700/80 space-y-3 transition">
+                            <p class="font-semibold text-white">1. ขั้นตอนแรกสุดของโมเดลการออกแบบ ADDIE คือข้อใด?</p>
+                            <div class="space-y-2 text-sm text-slate-300">
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q1" value="A" class="text-cyan-500" onchange="checkQuizProgress()"> Design (ออกแบบ)</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q1" value="B" class="text-cyan-500" onchange="checkQuizProgress()"> Analysis (วิเคราะห์)</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q1" value="C" class="text-cyan-500" onchange="checkQuizProgress()"> Development (พัฒนา)</label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div id="q2-block" class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700/80 space-y-3 transition opacity-50 pointer-events-none">
+                            <p class="font-semibold text-white">2. เหตุการณ์การสอนข้อใดตามแนวคิดของ Gagné ที่ควรทำเป็นอันดับแรกสุด?</p>
+                            <div class="space-y-2 text-sm text-slate-300">
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q2" value="A" class="text-cyan-500" onchange="checkQuizProgress()"> แจ้งวัตถุประสงค์การเรียนรู้</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q2" value="B" class="text-cyan-500" onchange="checkQuizProgress()"> เร้าความสนใจ (Gaining attention)</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q2" value="C" class="text-cyan-500" onchange="checkQuizProgress()"> ประเมินผลการเรียนรู้</label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div id="q3-block" class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700/80 space-y-3 transition opacity-50 pointer-events-none">
+                            <p class="font-semibold text-white">3. ตามหลักของ Mayer ข้อใดช่วยลดภาระการรับรู้เกินความจำเป็น (Extraneous Load)?</p>
+                            <div class="space-y-2 text-sm text-slate-300">
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q3" value="A" class="text-cyan-500" onchange="checkQuizProgress()"> ตัดข้อมูลหรือภาพที่ไม่เกี่ยวข้องออก (Coherence Principle)</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q3" value="B" class="text-cyan-500" onchange="checkQuizProgress()"> ใส่เสียงเพลงประกอบดังๆ ตลอดเวลา</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q3" value="C" class="text-cyan-500" onchange="checkQuizProgress()"> ใช้ตัวอักษรขนาดเล็กและซับซ้อน</label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div id="q4-block" class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700/80 space-y-3 transition opacity-50 pointer-events-none">
+                            <p class="font-semibold text-white">4. โมเดล Kirkpatrick ระดับที่ 2 (Learning) มุ่งเน้นวัดเรื่องใด?</p>
+                            <div class="space-y-2 text-sm text-slate-300">
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q4" value="A" class="text-cyan-500" onchange="checkQuizProgress()"> ความพึงพอใจต่ออาหารและสถานที่อบรม</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q4" value="B" class="text-cyan-500" onchange="checkQuizProgress()"> ความรู้และทักษะที่เพิ่มขึ้นหลังเรียน</label>
+                                <label class="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-750 transition"><input type="radio" name="q4" value="C" class="text-cyan-500" onchange="checkQuizProgress()"> ผลกำไรขององค์กรในภาพรวม</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-700 flex justify-end">
+                        <button id="submit-quiz-btn" onclick="submitQuiz('${type}')" class="px-8 py-4 bg-slate-700 text-slate-400 rounded-xl font-bold cursor-not-allowed transition" disabled>
+                            กรุณาตอบให้ครบทุกข้อเพื่อส่งคำตอบ
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkQuizProgress() {
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            const q4 = document.querySelector('input[name="q4"]:checked');
+
+            const b2 = document.getElementById('q2-block');
+            const b3 = document.getElementById('q3-block');
+            const b4 = document.getElementById('q4-block');
+            const submitBtn = document.getElementById('submit-quiz-btn');
+
+            if (q1) {
+                b2.classList.remove('opacity-50', 'pointer-events-none');
+                b2.classList.add('border-cyan-500/50');
+            }
+            if (q2) {
+                b3.classList.remove('opacity-50', 'pointer-events-none');
+                b3.classList.add('border-cyan-500/50');
+            }
+            if (q3) {
+                b4.classList.remove('opacity-50', 'pointer-events-none');
+                b4.classList.add('border-cyan-500/50');
+            }
+
+            if (q1 && q2 && q3 && q4) {
+                submitBtn.disabled = false;
+                submitBtn.className = "px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold shadow-lg shadow-cyan-500/20 transition cursor-pointer";
+                submitBtn.textContent = "ส่งคำตอบและตรวจผลสอบ";
+            }
+        }
+
+        function submitQuiz(type) {
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            const q4 = document.querySelector('input[name="q4"]:checked');
+
+            if (!q1 || !q2 || !q3 || !q4) {
+                showModal('แจ้งเตือน', 'กรุณาตอบคำถามให้ครบทุกข้อก่อนส่งคำตอบครับ', 'fa-triangle-exclamation', 'text-amber-400');
+                return;
+            }
+
+            let score = 0;
+            if (q1.value === 'B') score++;
+            if (q2.value === 'B') score++;
+            if (q3.value === 'A') score++;
+            if (q4.value === 'B') score++;
+
+            appState.quizScores[type] = score;
+            localStorage.setItem('eld_scores', JSON.stringify(appState.quizScores));
+            markCompleted(type);
+
+            showModal('ผลการทดสอบ', `คุณทำคะแนนได้ <b>${score} / 4</b> คะแนน`, 'fa-circle-check', 'text-emerald-400');
+            
+            // Navigate to appropriate next step
+            setTimeout(() => {
+                if (type === 'pretest') {
+                    navigateTo('lesson1');
+                } else {
+                    navigateTo('summary');
+                }
+            }, 1500);
+        }
+
+        // --- Interactive Activity Views ---
+        function renderActivityView(actId, container) {
+            markCompleted(actId);
+            const actData = {
+                act1: {
+                    title: "กิจกรรม: จัดลำดับขั้นตอน ADDIE",
+                    desc: "ทดความเข้าใจเรื่องกระบวนการ ADDIE",
+                    html: `
+                        <p class="mb-4 text-slate-300">ขั้นตอนการออกแบบระบบการสอน ADDIE เรียงตามลำดับถูกต้องคือ:</p>
+                        <div class="space-y-3 my-4">
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between">
+                                <span>1. วิเคราะห์ผู้เรียนและเป้าหมาย</span>
+                                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-xs font-semibold">Analysis</span>
+                            </div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between">
+                                <span>2. ออกแบบโครงสร้างและเครื่องมือวัดผล</span>
+                                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-xs font-semibold">Design</span>
+                            </div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between">
+                                <span>3. สร้างสื่อบทเรียนและระบบ e-Learning</span>
+                                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-xs font-semibold">Development</span>
+                            </div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between">
+                                <span>4. นำบทเรียนไปใช้สอนจริงกับกลุ่มเป้าหมาย</span>
+                                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-xs font-semibold">Implementation</span>
+                            </div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between">
+                                <span>5. ประเมินผลและปรับปรุงพัฒนาต่อ</span>
+                                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-xs font-semibold">Evaluation</span>
+                            </div>
+                        </div>
+                    `,
+                    next: 'review1',
+                    nextTitle: 'ไปหน้าทบทวนความเข้าใจ บทที่ 1'
+                },
+                act2: {
+                    title: "กิจกรรม: จับคู่เหตุการณ์การสอน Gagné",
+                    desc: "จับคู่สถานการณ์กับการกระตุ้นการเรียนรู้",
+                    html: `
+                        <p class="mb-4 text-slate-300">ตัวอย่างการประยุกต์ 9 เหตุการณ์การสอนของ Gagné ในวิชาคอมพิวเตอร์:</p>
+                        <div class="space-y-3 my-4 text-sm">
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl"><b>สถานการณ์ A:</b> เปิดคลิปวิดีโอสั้นตื่นเต้นก่อนเริ่มบทเรียน $\rightarrow$ <span class="text-cyan-400 font-semibold">เร้าความสนใจ (Gaining Attention)</span></div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl"><b>สถานการณ์ B:</b> ให้ผู้เรียนทำแบบฝึกหัดท้ายบทและแจ้งผลถูกผิดทันที $\rightarrow$ <span class="text-cyan-400 font-semibold">ให้ข้อมูลย้อนกลับ (Feedback)</span></div>
+                        </div>
+                    `,
+                    next: 'review2',
+                    nextTitle: 'ไปหน้าทบทวนความเข้าใจ บทที่ 2'
+                },
+                act3: {
+                    title: "กิจกรรม: วินิจฉัยปัญหาสื่อตามหลัก Mayer",
+                    desc: "วิเคราะห์ข้อบกพร่องของหน้าจอ e-Learning",
+                    html: `
+                        <p class="mb-4 text-slate-300">หากหน้าจอบทเรียนมีตัวอักษรยาวเหยียดพร้อมเสียงดนตรีประกอบและภาพเคลื่อนไหวรบกวนสมาธิ:</p>
+                        <div class="p-5 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-200 text-sm space-y-2">
+                            <b>ข้อเสนอแนะในการวินิจฉัยแก้ไข:</b>
+                            <ul class="list-disc list-inside space-y-1 text-slate-300">
+                                <li>เข้าข่ายขัดต่อ <b>Coherence Principle</b> (มีสิ่งรบกวนไม่จำเป็น)</li>
+                                <li>ควรตัดเสียงดนตรีที่ไม่เกี่ยวข้องออก และจัดย่อหน้าข้อความให้อ่านง่าย</li>
+                                <li>เพิ่มความชัดเจนตามเกณฑ์ Accessibility (สีตัวอักษรตัดกับพื้นหลังอย่างน้อย 4.5:1)</li>
+                            </ul>
+                        </div>
+                    `,
+                    next: 'review3',
+                    nextTitle: 'ไปหน้าทบทวนความเข้าใจ บทที่ 3'
+                },
+                act4: {
+                    title: "กิจกรรม: หลักฐานกับ Kirkpatrick Model",
+                    desc: "เชื่อมโยงข้อมูลประเมินผลกับระดับ Kirkpatrick",
+                    html: `
+                        <p class="mb-4 text-slate-300">การเก็บหลักฐานเพื่อประเมินผลหลักสูตร e-Learning ครูคอมพิวเตอร์ควรพิจารณา:</p>
+                        <div class="space-y-3 text-sm">
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl"><b>แบบประเมินความพึงพอใจหลังเรียนจบ:</b> <span class="text-emerald-400 font-semibold">Level 1 (Reaction)</span></div>
+                            <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl"><b>คะแนนทดสอบก่อนและหลังเรียน (Pre/Post-Test):</b> <span class="text-emerald-400 font-semibold">Level 2 (Learning)</span></div>
+                        </div>
+                    `,
+                    next: 'review4',
+                    nextTitle: 'ไปหน้าทบทวนความเข้าใจ บทที่ 4'
+                }
+            };
+
+            const data = actData[actId];
+            container.innerHTML = `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 md:p-10 shadow-xl space-y-6 animate-fadeIn">
+                    <div>
+                        <span class="text-cyan-400 font-semibold text-sm uppercase tracking-wide">กิจกรรมฝึกปฏิบัติ</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mt-1 mb-2">${data.title}</h2>
+                        <p class="text-slate-400 text-sm md:text-base">${data.desc}</p>
+                    </div>
+                    <div class="h-px bg-slate-700"></div>
+                    <div>${data.html}</div>
+                    <div class="pt-6 border-t border-slate-700 flex justify-end">
+                        <button onclick="navigateTo('${data.next}')" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+                            <span>${data.nextTitle}</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Review Views ---
+        function renderReviewView(reviewId, container) {
+            markCompleted(reviewId);
+            const num = reviewId.replace('review', '');
+            const nextMap = {
+                1: 'lesson2',
+                2: 'lesson3',
+                3: 'lesson4',
+                4: 'posttest'
+            };
+            const nextTitleMap = {
+                1: 'เข้าสู่บทที่ 2: การออกแบบการสอน',
+                2: 'เข้าสู่บทที่ 3: สื่อและการเข้าถึง',
+                3: 'เข้าสู่บทที่ 4: การวัดผลและข้อมูล',
+                4: 'ทำแบบทดสอบหลังเรียน (Post-Test)'
+            };
+
+            container.innerHTML = `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 md:p-10 shadow-xl space-y-6 animate-fadeIn text-center py-16">
+                    <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white">ทบทวนความเข้าใจ บทที่ ${num} เรียบร้อยแล้ว!</h2>
+                    <p class="text-slate-400 max-w-md mx-auto">คุณได้ศึกษาเนื้อหาและทำกิจกรรมทบทวนประจำบทที่ ${num} สำเร็จ สามารถดำเนินสู่ขั้นตอนถัดไปได้ทันที</p>
+                    <div class="pt-6">
+                        <button onclick="navigateTo('${nextMap[num]}')" class="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold shadow-lg shadow-cyan-500/25 transition inline-flex items-center gap-3">
+                            <span>${nextTitleMap[num]}</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Summary View ---
+        function renderSummaryView(container) {
+            markCompleted('summary');
+            const preScore = appState.quizScores['pretest'] !== undefined ? appState.quizScores['pretest'] : '-';
+            const postScore = appState.quizScores['posttest'] !== undefined ? appState.quizScores['posttest'] : '-';
+
+            container.innerHTML = `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 md:p-10 shadow-xl space-y-8 animate-fadeIn">
+                    <div class="text-center space-y-2">
+                        <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full text-xs font-semibold uppercase tracking-wider">
+                            สิ้นสุดหลักสูตร ELD-101
+                        </span>
+                        <h2 class="text-3xl font-bold text-white">สรุปผลสัมฤทธิ์การเรียนรู้</h2>
+                        <p class="text-slate-400">ยินดีด้วย คุณ ${appState.username || 'ผู้เรียน'} ได้ศึกษาหลักสูตรครบถ้วนสมบูรณ์</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+                        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-700 text-center space-y-2">
+                            <span class="text-slate-400 text-sm">คะแนนทดสอบก่อนเรียน (Pre-Test)</span>
+                            <div class="text-4xl font-bold text-cyan-400">${preScore} <span class="text-lg text-slate-500">/ 4</span></div>
+                        </div>
+                        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-700 text-center space-y-2">
+                            <span class="text-slate-400 text-sm">คะแนนทดสอบหลังเรียน (Post-Test)</span>
+                            <div class="text-4xl font-bold text-emerald-400">${postScore} <span class="text-lg text-slate-500">/ 4</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl p-6 text-center space-y-3">
+                        <i class="fa-solid fa-award text-cyan-400 text-4xl"></i>
+                        <h3 class="text-xl font-bold text-white">เกียรติบัตรรับรองการผ่านหลักสูตร</h3>
+                        <p class="text-sm text-slate-300">หลักสูตรการออกแบบและพัฒนา e-Learning (ELD-101) สำหรับนักศึกษาครูคอมพิวเตอร์</p>
+                        <div class="pt-2">
+                            <button onclick="showModal('ดาวน์โหลดเกียรติบัตร', 'ระบบบันทึกความก้าวหน้าสำเร็จ คุณสามารถบันทึกภาพหน้าจอนี้เป็นหลักฐานการผ่านอบรมได้ทันที', 'fa-award', 'text-cyan-400')" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-semibold text-sm shadow-lg transition">
+                                <i class="fa-solid fa-download mr-2"></i> บันทึกเกียรติบัตร
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-center">
+                        <button onclick="navigateTo('home')" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-sm font-medium transition">
+                            <i class="fa-solid fa-house mr-2"></i> กลับสู่หน้าแรก
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Profile & Modal Handlers ---
+        function checkAndStart() {
+            if (!appState.username) {
+                openProfileModal();
+            } else {
+                markCompleted('home');
+                navigateTo('pretest');
+            }
+        }
+
+        function openProfileModal() {
+            document.getElementById('username-input').value = appState.username;
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+        function saveUsername() {
+            const val = document.getElementById('username-input').value.trim();
+            if (!val) {
+                showModal('แจ้งเตือน', 'กรุณากรอกชื่อเล่นหรือนามแฝงก่อนบันทึกครับ', 'fa-triangle-exclamation', 'text-amber-400');
+                return;
+            }
+            appState.username = val;
+            localStorage.setItem('eld_username', val);
+            updateUsernameDisplay();
+            closeProfileModal();
+            showModal('สำเร็จ', `บันทึกชื่อผู้เรียนเรียบร้อย: <b>${val}</b>`, 'fa-circle-check', 'text-emerald-400');
+            
+            // Update home status if on home view
+            const homeStatus = document.getElementById('home-username-status');
+            if (homeStatus) homeStatus.textContent = val;
+
+            // Mark home completed and proceed to pretest automatically
+            markCompleted('home');
+            navigateTo('pretest');
+        }
+
+        function openProfileModal() {
+            document.getElementById('username-input').value = appState.username;
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+        function showModal(title, desc, iconClass = 'fa-circle-info', iconColor = 'text-cyan-500') {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').innerHTML = desc;
+            document.getElementById('modal-icon').className = `text-4xl ${iconColor} mb-3`;
+            document.getElementById('modal-icon').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('theme-icon').className = isDark ? "fa-solid fa-sun text-amber-400" : "fa-solid fa-moon text-indigo-500";
+        }
+
+        function resetProgress() {
+            if (confirm('คุณต้องการรีเซ็ตข้อมูลความก้าวหน้าทั้งหมดใช่หรือไม่?')) {
+                localStorage.clear();
+                appState.username = '';
+                appState.currentView = 'home';
+                appState.completedLessons = [];
+                appState.quizScores = {};
+                updateUsernameDisplay();
+                renderNav();
+                renderView('home');
+                showModal('รีเซ็ตสำเร็จ', 'ล้างข้อมูลความก้าวหน้าและคะแนนทั้งหมดเรียบร้อยแล้ว', 'fa-rotate-right', 'text-cyan-400');
+            }
+        }
+    </script>
+</body>
+</html>
